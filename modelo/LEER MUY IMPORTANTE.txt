@@ -1,6 +1,6 @@
 Debido a el peso del modelo IA utilizado en este proyecto he decidido subirlo aparte, ya que GitHub el máximo de subida que permite es de 25 MB, y el modelo IA pesa 1.4 GB.
 Link de descarga del modelo IA:
 
-
+https://drive.google.com/file/d/1aAq4vTFRjgqJyk-GcszOqwRK7ZR6hi5K/view?usp=sharing
 
 NOTA: Una vez descargado el modelo IA colocarlo en la carpeta Modelo para su respectivo uso en la aplicación web.
