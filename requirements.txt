@@ -1,0 +1,27 @@
+# Framework web y base de datos
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+Werkzeug
+
+# Generación de PDFs
+fpdf2
+
+# Inteligencia artificial / Modelos
+llama-cpp-python
+torch
+tensorflow
+numpy
+scipy
+transformers
+sentencepiece
+
+# Utilidades y manejo de fechas
+python-dateutil
+pandas
+requests
+
+# Otras dependencias útiles
+Pillow
+tqdm
+python-dotenv

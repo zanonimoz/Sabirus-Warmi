@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente IA - Sabirus Warmi</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #333;
+            --secondary: #666;
+            --light: #f5f5f5;
+            --border: #e0e0e0;
+            --purple: #7b1fa2;
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f5f5f5; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-header {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: var(--secondary);
+        }
+
+        .btn-back {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .btn-back:hover {
+            background: var(--light);
+            border-color: #ccc;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .welcome-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 20px;
+        }
+
+        .welcome-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: var(--secondary);
+            margin-bottom: 24px;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .suggestion-chip {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--primary);
+            text-align: center;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--light);
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .suggestion-chip.alquiler {
+            border-color: var(--purple);
+            background: #f3e5f5;
+        }
+
+        .suggestion-chip.alquiler:hover {
+            background: #e1bee7;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 8px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            font-size: 15px;
+        }
+
+        .message.user .message-content {
+            background: var(--primary);
+            color: white;
+        }
+
+        .message.ai .message-content {
+            background: var(--light);
+            color: var(--primary);
+        }
+
+        .message.ai .message-content strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .message.ai .message-content p {
+            margin-bottom: 8px;
+        }
+
+        .message.ai .message-content ul,
+        .message.ai .message-content ol {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: var(--light);
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
+        }
+
+        .chat-input-container {
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+            resize: none;
+            max-height: 100px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.05);
+        }
+
+        .btn-send {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-send:hover {
+            background: #1a1a1a;
+        }
+
+        .btn-send:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <div class="header-left">
+            <div>
+                <div class="header-title">Asistente Inteligente con Alquileres</div>
+                <div class="header-subtitle">Sabirus Warmi - Sistema Completo</div>
+            </div>
+        </div>
+        <a href="/main" class="btn-back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Volver
+        </a>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="welcome-section">
+            <div class="welcome-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2Z"/>
+                    <circle cx="9" cy="14" r="1"/>
+                    <circle cx="15" cy="14" r="1"/>
+                </svg>
+            </div>
+            <div class="welcome-title">Asistente IA - Sistema Completo</div>
+            <div class="welcome-subtitle">Consulta sobre productos, ventas, alquileres, clientes y reportes</div>
+            
+            <div class="suggestions-grid">
+                <div class="suggestion-chip" onclick="enviarSugerencia('¿Cuál es el precio de venta y alquiler de los aretes de plata?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    Precios Venta/Alquiler
+                </div>
+                <div class="suggestion-chip alquiler" onclick="enviarSugerencia('¿Cuántos alquileres activos tenemos?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    Alquileres Activos
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('¿Cuáles son los 5 productos más vendidos?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="8" r="7"/>
+                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                    </svg>
+                    Top Vendidos
+                </div>
+                <div class="suggestion-chip alquiler" onclick="enviarSugerencia('¿Qué productos se alquilan más?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    </svg>
+                    Top Alquilados
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('Muéstrame las estadísticas generales')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Estadísticas
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('¿Qué clientes compran o alquilan más?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Clientes Frecuentes
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('¿Qué productos tienen stock bajo?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    Stock Bajo
+                </div>
+                <div class="suggestion-chip alquiler" onclick="enviarSugerencia('Dame detalles de los últimos alquileres')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Últimos Alquileres
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('¿Cuánto hemos ganado en total entre ventas y alquileres?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    Ingresos Totales
+                </div>
+                <div class="suggestion-chip alquiler" onclick="enviarSugerencia('¿Qué productos están disponibles para alquilar?')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                    Productos Alquilables
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('Dame información sobre las últimas ventas')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    Últimas Ventas
+                </div>
+                <div class="suggestion-chip" onclick="enviarSugerencia('Muéstrame los reportes mensuales con ventas y alquileres')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    Reportes Completos
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-container">
+        <div class="input-wrapper">
+            <input type="text" class="chat-input" id="chatInput" 
+                   placeholder="Pregunta sobre productos, ventas, alquileres, clientes..." 
+                   onkeypress="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); enviarMensaje(); }">
+            <button class="btn-send" id="btnSend" onclick="enviarMensaje()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chatContainer');
+        const chatInput = document.getElementById('chatInput');
+        const btnSend = document.getElementById('btnSend');
+
+        function formatearRespuestaIA(texto) {
+            texto = texto
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+            return `<p>${texto}</p>`;
+        }
+
+        function agregarMensaje(texto, tipo) {
+            const welcomeSection = document.querySelector('.welcome-section');
+            if (welcomeSection) {
+                welcomeSection.style.display = 'none';
+            }
+
+            const mensaje = document.createElement('div');
+            mensaje.className = `message ${tipo}`;
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            if (tipo === 'ai') {
+                content.innerHTML = formatearRespuestaIA(texto);
+            } else {
+                content.innerHTML = texto;
+            }
+            
+            mensaje.appendChild(content);
+            chatContainer.appendChild(mensaje);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return content;
+        }
+
+        function mostrarIndicadorEscribiendo(mostrar) {
+            let indicator = document.getElementById('typingIndicator');
+            if (mostrar) {
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'typingIndicator';
+                    indicator.className = 'typing-indicator';
+                    indicator.innerHTML = `
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    `;
+                    chatContainer.appendChild(indicator);
+                }
+            } else {
+                if (indicator) indicator.remove();
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function enviarMensaje() {
+            const pregunta = chatInput.value.trim();
+            if (!pregunta) return;
+
+            agregarMensaje(pregunta, 'user');
+            chatInput.value = '';
+            btnSend.disabled = true;
+
+            mostrarIndicadorEscribiendo(true);
+
+            try {
+                const response = await fetch('/api/chat-ia', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pregunta })
+                });
+
+                mostrarIndicadorEscribiendo(false);
+
+                const mensajeIA = agregarMensaje('', 'ai');
+                let respuestaCompleta = '';
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                if (data.error) {
+                                    mensajeIA.innerHTML = formatearRespuestaIA(`❌ Error: ${data.error}`);
+                                    break;
+                                }
+                                
+                                if (data.chunk) {
+                                    respuestaCompleta += data.chunk;
+                                    mensajeIA.innerHTML = formatearRespuestaIA(respuestaCompleta);
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                }
+                                
+                                if (data.done) break;
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                            }
+                        }
+                    }
+                }
+
+                if (!respuestaCompleta.trim()) {
+                    mensajeIA.innerHTML = formatearRespuestaIA('No se pudo generar una respuesta. Por favor, intenta de nuevo.');
+                }
+
+            } catch (error) {
+                mostrarIndicadorEscribiendo(false);
+                agregarMensaje('❌ Error al procesar tu pregunta. Por favor, intenta de nuevo.', 'ai');
+                console.error('Error:', error);
+            } finally {
+                btnSend.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        function enviarSugerencia(texto) {
+            chatInput.value = texto;
+            enviarMensaje();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            chatInput.focus();
+        });
+    </script>
+</body>
+</html>
